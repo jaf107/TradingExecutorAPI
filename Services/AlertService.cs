@@ -9,8 +9,8 @@ namespace TradingExecutorAPI.Services
         public bool ValidateService(string reqHeader, string reqBody, string callerUrl)
         {
 
-            if (callerUrl.Contains( TargetApiUrl))
-                return false;
+            //if (callerUrl.Contains( TargetApiUrl))
+            //    return false;
             return reqHeader == PerformXOR(reqBody.Split("||").ToList());
         }
 
