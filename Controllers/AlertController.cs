@@ -14,6 +14,10 @@ namespace TradingExecutorAPI.Controllers
         [HttpPost("/forwardalert", Name = "ForwardAlert")]
         public async Task<string> ForwardAlert()
         {
+            var timeUtc = DateTime.UtcNow;
+            TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+
             try
             {
                 StreamWriter? sw = null;
@@ -33,7 +37,7 @@ namespace TradingExecutorAPI.Controllers
                 if (!valid.Item1)
                 {
                     sw = new StreamWriter("AlertErrors.txt", true);
-                    await sw.WriteLineAsync(DateTime.Now + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
+                    await sw.WriteLineAsync(easternZone + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
                     await sw!.DisposeAsync();
                     return "Token Validation Error";
                 }
@@ -41,17 +45,17 @@ namespace TradingExecutorAPI.Controllers
                 try
                 {
                     sw = new StreamWriter("ClientAlertDetails.txt", true);
-                    await sw.WriteLineAsync(DateTime.Now + " , " + reqBody);
+                    await sw.WriteLineAsync(easternZone + " , " + reqBody);
                 }
                 catch (IOException ex)
                 {
                     sw = new StreamWriter("AlertErrors.txt", true);
-                    await sw.WriteLineAsync(DateTime.Now + " , " + ex.Message);
+                    await sw.WriteLineAsync(easternZone + " , " + ex.Message);
                 }
                 catch (Exception ex)
                 {
                     sw = new StreamWriter("AlertErrors.txt", true);
-                    await sw.WriteLineAsync(DateTime.Now + " , " + ex.Message);
+                    await sw.WriteLineAsync(easternZone + " , " + ex.Message);
                 }
                 finally
                 {
