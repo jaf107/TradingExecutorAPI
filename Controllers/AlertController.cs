@@ -25,8 +25,11 @@ namespace TradingExecutorAPI.Controllers
             // Validate Token
             bool valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody,callerUrl);
             if (!valid)
+            {
+                sw = new StreamWriter("AlertErrors.txt", true);
+                await sw.WriteLineAsync(DateTime.Now + " , " + "Token Validation Error");
                 return "Token Validation Error";
-
+            }
             // Write to File
             try
             {
