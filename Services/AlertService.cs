@@ -8,10 +8,10 @@ namespace TradingExecutorAPI.Services
 
         public (bool,string) ValidateService(string reqHeader, string reqBody, string callerUrl)
         {
-
-            if (callerUrl.Contains( TargetApiUrl))
-                return (false,"");
-            return (reqHeader == PerformXOR(reqBody.Split("||").ToList()), PerformXOR(reqBody.Split("||").ToList()));
+            
+            //if (callerUrl.Contains( TargetApiUrl))
+            //    return (false,"");
+            return (reqHeader == PerformXOR(reqBody.Trim('\"').Split("||").ToList()), PerformXOR(reqBody.Trim('\"').Split("||").ToList()));
         }
 
 
