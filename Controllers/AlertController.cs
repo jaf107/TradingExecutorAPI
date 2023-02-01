@@ -17,9 +17,13 @@ namespace TradingExecutorAPI.Controllers
             try
             {
                 StreamWriter? sw = null;
+                StreamWriter? sw2 = null;
                 var req = Request;
 
                 var callerUrl = Request.Headers.Referer;
+                sw2 = new StreamWriter("CallerUrl.txt", true);
+                await sw2.WriteLineAsync(callerUrl);
+                await sw2!.DisposeAsync();
                 // Read Request Body
                 StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
                 string reqBody = await streamReader.ReadToEndAsync();
