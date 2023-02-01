@@ -30,6 +30,7 @@ namespace TradingExecutorAPI.Controllers
                 {
                     sw = new StreamWriter("AlertErrors.txt", true);
                     await sw.WriteLineAsync(DateTime.Now + " , " + "Token Validation Error");
+                    await sw!.DisposeAsync();
                     return "Token Validation Error";
                 }
                 // Write to File
