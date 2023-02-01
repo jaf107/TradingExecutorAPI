@@ -11,7 +11,7 @@ namespace TradingExecutorAPI.Controllers
     {
         private const string SuccessCode = "200";
 
-        [HttpPost("/fowardalert", Name = "ForwardAlert")]
+        [HttpPost("/forwardalert", Name = "ForwardAlert")]
         public async Task<string> ForwardAlert()
         {
             StreamWriter? sw = null;
