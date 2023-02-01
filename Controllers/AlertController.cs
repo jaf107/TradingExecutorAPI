@@ -17,12 +17,13 @@ namespace TradingExecutorAPI.Controllers
             StreamWriter? sw = null;
             var req = Request;
 
+            var callerUrl = Request.Headers.Referer;
             // Read Request Body
             StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
             string reqBody = await streamReader.ReadToEndAsync();
 
             // Validate Token
-            bool valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody);
+            bool valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody,callerUrl);
             if (!valid)
                 return "Token Validation Error";
 

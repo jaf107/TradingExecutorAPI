@@ -4,10 +4,12 @@ namespace TradingExecutorAPI.Services
 {
     public class AlertService
     {
-        private const string TargetApiUrl = "";
+        private const string TargetApiUrl = "https://tradingalertapi.azurewebsites.net";
 
-        public bool ValidateService(string reqHeader, string reqBody)
+        public bool ValidateService(string reqHeader, string reqBody, string callerUrl)
         {
+            if (callerUrl != TargetApiUrl)
+                return false;
             return reqHeader == PerformXOR(reqBody.Split("||").ToList());
         }
 
