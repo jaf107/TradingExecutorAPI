@@ -29,11 +29,11 @@ namespace TradingExecutorAPI.Controllers
                 string reqBody = await streamReader.ReadToEndAsync();
 
                 // Validate Token
-                bool valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody, callerUrl);
-                if (!valid)
+                var valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody, callerUrl);
+                if (!valid.Item1)
                 {
                     sw = new StreamWriter("AlertErrors.txt", true);
-                    await sw.WriteLineAsync(DateTime.Now + " , " + "Token Validation Error");
+                    await sw.WriteLineAsync(DateTime.Now + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
                     await sw!.DisposeAsync();
                     return "Token Validation Error";
                 }
