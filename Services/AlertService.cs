@@ -4,11 +4,12 @@ namespace TradingExecutorAPI.Services
 {
     public class AlertService
     {
+        // Sometimes it can be null, so we need to skip this check for now
         private const string TargetApiUrl = "https://tradingalertapi.azurewebsites.net";
 
         public (bool,string) ValidateService(string reqHeader, string reqBody, string callerUrl)
         {
-            
+            //$TODO: Later
             //if (callerUrl.Contains( TargetApiUrl))
             //    return (false,"");
             return (reqHeader == PerformXOR(reqBody.Trim('\"').Split("||").ToList()), PerformXOR(reqBody.Trim('\"').Split("||").ToList()));
