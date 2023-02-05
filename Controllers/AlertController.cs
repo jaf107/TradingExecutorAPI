@@ -66,7 +66,7 @@ namespace TradingExecutorAPI.Controllers
         [HttpGet("/getversion", Name = "GetVersion")]
         public string GetVersion()
         {
-            return "1.0";
+            return "1.2";
         }
     }
 }
