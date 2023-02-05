@@ -18,8 +18,6 @@ namespace TradingExecutorAPI.Controllers
             TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
             DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
 
-            //StreamWriter? sw1 = null;
-            //StreamWriter? sw2 = null;
             var req = Request;
             StreamWriter sw1 = new StreamWriter("ClientAlertDetails.txt", true);
             StreamWriter sw2 = new StreamWriter("AlertErrors.txt", true);
