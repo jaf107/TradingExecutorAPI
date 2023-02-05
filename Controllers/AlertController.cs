@@ -21,7 +21,7 @@ namespace TradingExecutorAPI.Controllers
             //StreamWriter? sw1 = null;
             //StreamWriter? sw2 = null;
             var req = Request;
-            StreamWriter sw1 = new StreamWriter("AlertDetails.txt", true);
+            StreamWriter sw1 = new StreamWriter("ClientAlertDetails.txt", true);
             StreamWriter sw2 = new StreamWriter("AlertErrors.txt", true);
 
 
