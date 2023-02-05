@@ -2,6 +2,7 @@
 {
     public class AlertModel
     {
-        public string Message { get; set; }
+        public string? TimeAndMessage { get; set; }
+        public string? Message { get; set; }
     }
 }

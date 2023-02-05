@@ -24,8 +24,8 @@ namespace TradingExecutorAPI.Controllers
 
 
             // Read Request Body
-            string reqBody = alert.Message;
-
+            string reqBody = alert.TimeAndMessage;
+            var message = alert.Message;
             // Validate Token
             var valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody);
             if (!valid.Item1)
@@ -37,7 +37,7 @@ namespace TradingExecutorAPI.Controllers
             // Write to File
             try
             {
-                await sw1.WriteLineAsync(easternTime + " , " + reqBody);
+                await sw1.WriteLineAsync(easternTime + " , " + message);
             }
             catch (IOException ex)
             {
