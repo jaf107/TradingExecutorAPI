@@ -10,49 +10,71 @@ namespace TradingExecutorAPI.Controllers
     public class AlertController : ControllerBase
     {
         private const string SuccessCode = "200";
+        private const string FileDirectory = "C:\\Alerts";
+        private const string FilePathWithName = FileDirectory + "\\Alerts.txt";
+        private const string AlertDetailsFileName = "AlertDetails.txt";
+        private const string AlertErrorsFileName = "AlertErrors.txt";
+        
 
         [HttpPost("/forwardalert", Name = "ForwardAlert")]
         public async Task<string> ForwardAlert(AlertModel alert)
         {
-            /*var timeUtc = DateTime.UtcNow;
-            TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-            DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);*/
-
+            if (!Directory.Exists(FileDirectory))
+            {
+                Directory.CreateDirectory(FileDirectory);
+            }
             var req = Request;
-            StreamWriter sw1 = new StreamWriter("AlertDetails.txt", true);
-            StreamWriter sw2 = new StreamWriter("AlertErrors.txt", true);
-
-
+            StreamWriter sw1 = new StreamWriter(FilePathWithName, true);
+            StreamWriter sw2 = new StreamWriter(AlertDetailsFileName, true);
+            StreamWriter sw3 = new StreamWriter(AlertErrorsFileName, true);
+            
             // Read Request Body
             string reqBody = alert.TimeAndMessage!;
             string alertTime = alert.TimeAndMessage?.Split("||")[0]!;
-            var message = alert.TimeAndMessage?.Split("||")[1]!;
-            
+            string message = alert.TimeAndMessage?.Split("||")[1]!;
+            string messageWithImpInfo;
+            if (message.Contains("Crossing Up"))
+            {
+                messageWithImpInfo = "Crossing Up";
+            } 
+            else if (message.Contains("Crossing Down"))
+            {
+                messageWithImpInfo = "Crossing Down";
+            }
+            else
+            {
+                messageWithImpInfo = message;
+            }
+
             // Validate Token
             var valid = new AlertService().ValidateReqHeader(req.Headers["CallerToken"], reqBody);
             if (!valid.Item1)
             {
-                await sw2.WriteLineAsync( alertTime + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
+                await sw3.WriteLineAsync( alertTime + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
+                await sw1!.DisposeAsync();
                 await sw2!.DisposeAsync();
+                await sw3!.DisposeAsync();
                 return "Token Validation Error";
             }
             // Write to File
             try
             {
-                await sw1.WriteLineAsync(alertTime + " , " + message);
+                await sw1.WriteLineAsync(alertTime + "," + messageWithImpInfo);
+                await sw2.WriteLineAsync(alertTime + " , " + message);
             }
             catch (IOException ex)
             {
-                await sw2.WriteLineAsync(alertTime + " , " + ex.Message);
+                await sw3.WriteLineAsync(alertTime + " , " + ex.Message);
             }
             catch (Exception ex)
             {
-                await sw2.WriteLineAsync(alertTime + " , " + ex.Message);
+                await sw3.WriteLineAsync(alertTime + " , " + ex.Message);
             }
             finally
             {
                 await sw1!.DisposeAsync();
                 await sw2!.DisposeAsync();
+                await sw3!.DisposeAsync();
             }
 
             return SuccessCode;
