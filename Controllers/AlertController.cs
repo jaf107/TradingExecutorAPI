@@ -18,48 +18,41 @@ namespace TradingExecutorAPI.Controllers
             TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
             DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
 
-            StreamWriter? sw = null;
-            StreamWriter? sw2 = null;
+            //StreamWriter? sw1 = null;
+            //StreamWriter? sw2 = null;
             var req = Request;
+            StreamWriter sw1 = new StreamWriter("AlertDetails.txt", true);
+            StreamWriter sw2 = new StreamWriter("AlertErrors.txt", true);
 
-            var callerUrl = Request.Headers.Referer;
-            sw2 = new StreamWriter("CallerUrl.txt", true);
-            await sw2.WriteLineAsync(callerUrl);
-            await sw2!.DisposeAsync();
+
             // Read Request Body
-            StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
-            //string reqBody = await streamReader.ReadToEndAsync();
             string reqBody = alert.Message;
 
-            //reqBody = System.Text.RegularExpressions.Regex.Unescape(reqBody);
             // Validate Token
-            var valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody, callerUrl);
+            var valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody);
             if (!valid.Item1)
             {
-                sw = new StreamWriter("AlertErrors.txt", true);
-                await sw.WriteLineAsync(easternTime + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
-                await sw!.DisposeAsync();
+                await sw2.WriteLineAsync(easternTime + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
+                await sw2!.DisposeAsync();
                 return "Token Validation Error";
             }
             // Write to File
             try
             {
-                sw = new StreamWriter("AlertDetails.txt", true);
-                await sw.WriteLineAsync(easternTime + " , " + reqBody);
+                await sw1.WriteLineAsync(easternTime + " , " + reqBody);
             }
             catch (IOException ex)
             {
-                sw = new StreamWriter("AlertErrors.txt", true);
-                await sw.WriteLineAsync(easternTime + " , " + ex.Message);
+                await sw2.WriteLineAsync(easternTime + " , " + ex.Message);
             }
             catch (Exception ex)
             {
-                sw = new StreamWriter("AlertErrors.txt", true);
-                await sw.WriteLineAsync(easternZone + " , " + ex.Message);
+                await sw2.WriteLineAsync(easternZone + " , " + ex.Message);
             }
             finally
             {
-                await sw!.DisposeAsync();
+                await sw1!.DisposeAsync();
+                await sw2!.DisposeAsync();
             }
 
             return SuccessCode;
