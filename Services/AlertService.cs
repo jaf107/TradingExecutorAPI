@@ -12,9 +12,10 @@ namespace TradingExecutorAPI.Services
             //$TODO: Later
             //if (callerUrl.Contains( TargetApiUrl))
             //    return (false,"");
-            return (reqHeader == PerformXOR(reqBody.Trim('\"').Split("||").ToList()), PerformXOR(reqBody.Trim('\"').Split("||").ToList()));
+            var valid = (reqHeader == PerformXOR(reqBody.Split("||").ToList()), PerformXOR(reqBody.Split("||").ToList()));
+            return valid;
         }
-
+         
 
         private string PerformXOR(List<string> textsBeforeModification)
         {

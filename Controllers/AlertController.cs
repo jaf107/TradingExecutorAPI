@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using TradingExecutorAPI.Models;
 using TradingExecutorAPI.Services;
 namespace TradingExecutorAPI.Controllers
 {
@@ -11,7 +12,7 @@ namespace TradingExecutorAPI.Controllers
         private const string SuccessCode = "200";
 
         [HttpPost("/forwardalert", Name = "ForwardAlert")]
-        public async Task<string> ForwardAlert()
+        public async Task<string> ForwardAlert(AlertModel alert)
         {
             var timeUtc = DateTime.UtcNow;
             TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
@@ -27,8 +28,10 @@ namespace TradingExecutorAPI.Controllers
             await sw2!.DisposeAsync();
             // Read Request Body
             StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
-            string reqBody = await streamReader.ReadToEndAsync();
+            //string reqBody = await streamReader.ReadToEndAsync();
+            string reqBody = alert.Message;
 
+            //reqBody = System.Text.RegularExpressions.Regex.Unescape(reqBody);
             // Validate Token
             var valid = new AlertService().ValidateService(req.Headers["CallerToken"], reqBody, callerUrl);
             if (!valid.Item1)
