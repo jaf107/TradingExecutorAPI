@@ -24,7 +24,7 @@ namespace TradingExecutorAPI.Controllers
                 Directory.CreateDirectory(FileDirectory);
             }
             var req = Request;
-            StreamWriter sw1 = new StreamWriter(FilePathWithName, true);
+            StreamWriter sw1 = new StreamWriter(FilePathWithName, false);
             StreamWriter sw2 = new StreamWriter(AlertDetailsFileName, true);
             StreamWriter sw3 = new StreamWriter(AlertErrorsFileName, true);
             
@@ -33,6 +33,7 @@ namespace TradingExecutorAPI.Controllers
             string alertTime = alert.TimeAndMessage?.Split("||")[0]!;
             string message = alert.TimeAndMessage?.Split("||")[1]!;
             string messageWithImpInfo;
+            string tradeType = message.Split(",")[0];
             if (message.Contains("Crossing Up"))
             {
                 messageWithImpInfo = "Crossing Up";
@@ -59,7 +60,22 @@ namespace TradingExecutorAPI.Controllers
             // Write to File
             try
             {
-                await sw1.WriteLineAsync(alertTime + "," + messageWithImpInfo);
+                string prevData;
+                // Read prev content before writing
+                using (StreamReader sReader = new StreamReader(FilePathWithName)) {
+                    prevData = await sReader.ReadToEndAsync();
+                }
+                
+                // Delete the existing file
+                //System.IO.File.Delete(FilePathWithName);
+                
+                // Clear the existing file
+                await System.IO.File.WriteAllTextAsync(FilePathWithName, string.Empty);
+                
+                //// File Output Pattern ////
+                // Time,Crossing Up/Down,TradeType \n
+                // Prev Rows
+                await sw1.WriteAsync(alertTime + "," + messageWithImpInfo + "," + tradeType + Environment.NewLine + prevData);
                 await sw2.WriteLineAsync(alertTime + " , " + message);
             }
             catch (IOException ex)
