@@ -19,20 +19,61 @@ namespace TradingExecutorAPI.Controllers
         [HttpPost("/forwardalert", Name = "ForwardAlert")]
         public async Task<string> ForwardAlert(AlertModel alert)
         {
-            if (!Directory.Exists(FileDirectory))
-            {
-                Directory.CreateDirectory(FileDirectory);
-            }
-            var req = Request;
-            StreamWriter sw1 = new StreamWriter(FilePathWithName, true);
-            StreamWriter sw2 = new StreamWriter(AlertDetailsFileName, true);
-            StreamWriter sw3 = new StreamWriter(AlertErrorsFileName, true);
-            
             // Read Request Body
             string reqBody = alert.TimeAndMessage!;
             string alertTime = alert.TimeAndMessage?.Split("||")[0]!;
             string message = alert.TimeAndMessage?.Split("||")[1]!;
             string messageWithImpInfo;
+
+            string stockName = message.Split(",")[0];
+
+            if (!Directory.Exists(FileDirectory))
+            {
+                Directory.CreateDirectory(FileDirectory);
+            }
+            var req = Request;
+
+            StreamWriter sw3 = new StreamWriter(AlertErrorsFileName, true);
+
+            StreamReader? sr1 = null;
+            StreamReader? sr2 = null;
+
+            string OldAlertDetails = "";
+            
+            try
+            {
+                sr1= new StreamReader(AlertDetailsFileName);
+                OldAlertDetails = sr1.ReadToEnd();
+            }
+            catch(Exception ex)
+            {
+                await sw3.WriteLineAsync(alertTime + ex.Message);
+            }
+            finally
+            {
+                sr1.Dispose();
+            }
+
+
+            string OldAlerts = "";
+            try
+            {
+                sr2 = new StreamReader(FilePathWithName);
+                OldAlerts = sr2.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                await sw3.WriteLineAsync(alertTime + ex.Message);
+            }
+            finally
+            {
+                sr2.Dispose();
+            }
+
+            StreamWriter sw1 = new StreamWriter(FilePathWithName, false);
+            StreamWriter sw2 = new StreamWriter(AlertDetailsFileName, false);
+            
+            
             if (message.Contains("Crossing Up"))
             {
                 messageWithImpInfo = "Crossing Up";
@@ -59,8 +100,15 @@ namespace TradingExecutorAPI.Controllers
             // Write to File
             try
             {
-                await sw1.WriteLineAsync(alertTime + "," + messageWithImpInfo);
-                await sw2.WriteLineAsync(alertTime + " , " + message);
+
+                string NewAlertDetails = alertTime + " , " + message;
+                string DetailedMessageToWrite = NewAlertDetails + "\n" + OldAlertDetails;
+
+                string NewAlert = alertTime + "," + messageWithImpInfo + "," + stockName;
+                string AlertsToWrite = NewAlert + "\n" + OldAlerts;
+                
+                await sw1.WriteAsync(AlertsToWrite);
+                await sw2.WriteAsync(DetailedMessageToWrite);
             }
             catch (IOException ex)
             {
