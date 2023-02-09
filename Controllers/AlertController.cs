@@ -26,6 +26,10 @@ namespace TradingExecutorAPI.Controllers
         {
             try
             {
+                // Initiate writer for alert error, sw3 = AlertErrors.txt
+                // Creating at the beginning so that exception can be caught from the very first point
+                _sw3 = new StreamWriter(AlertErrorsFileName, true);
+                
                 // Create Directory if not exists 
                 FileUtils.CreateDirectory(FileDirectory);
             
@@ -41,10 +45,7 @@ namespace TradingExecutorAPI.Controllers
                 string message = alert.TimeAndMessage?.Split("||")[1]!;
                 string messageWithImpInfo;
                 string tradeType = message.Split(",")[0];
-                
-                // Initiate writer for alert error, sw3 = AlertErrors.txt
-                _sw3 = new StreamWriter(AlertErrorsFileName, true);
-                
+
                 // Validate Token
                 var valid = new AlertService().ValidateReqHeader(req.Headers["CallerToken"], reqBody);
                 if (!valid.Item1)
@@ -96,9 +97,9 @@ namespace TradingExecutorAPI.Controllers
             }
             finally
             {
-                await _sw1!.DisposeAsync();
-                await _sw2!.DisposeAsync();
-                await _sw3!.DisposeAsync();
+                if(_sw1 != null) await _sw1!.DisposeAsync();
+                if(_sw2 != null) await _sw2!.DisposeAsync();
+                if(_sw3 != null) await _sw3!.DisposeAsync();
             }
 
             return SuccessCode;
