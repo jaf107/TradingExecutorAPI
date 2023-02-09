@@ -33,13 +33,8 @@ namespace TradingExecutorAPI.Controllers
                 using StreamReader sReader = new StreamReader(FilePathWithName);
                 _prevData = await sReader.ReadToEndAsync();
                 sReader.Dispose();
-                
-                // Initiate all writers,
-                // sw1 = Alerts.txt, sw2 = AlertDetails.txt, sw3 = AlertErrors.txt
-                _sw1 = new StreamWriter(FilePathWithName, false);
-                _sw2 = new StreamWriter(AlertDetailsFileName, true);
-                _sw3 = new StreamWriter(AlertErrorsFileName, true);
-                
+
+
                 // Read Request Body/Contents
                 HttpRequest req = Request;
                 string reqBody = alert.TimeAndMessage!;
@@ -52,9 +47,8 @@ namespace TradingExecutorAPI.Controllers
                 var valid = new AlertService().ValidateReqHeader(req.Headers["CallerToken"], reqBody);
                 if (!valid.Item1)
                 {
+                    _sw3 = new StreamWriter(AlertErrorsFileName, true);
                     await _sw3.WriteLineAsync( _alertTime + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
-                    await _sw1!.DisposeAsync();
-                    await _sw2!.DisposeAsync();
                     await _sw3!.DisposeAsync();
                     return "Token Validation Error";
                 }
@@ -79,12 +73,18 @@ namespace TradingExecutorAPI.Controllers
                 // Clear the existing file
                 await System.IO.File.WriteAllTextAsync(FilePathWithName, string.Empty);
                 
+                // Initiate all writers for alert (except AlertErrors.txt),
+                // sw1 = Alerts.txt, sw2 = AlertDetails.txt
+                _sw1 = new StreamWriter(FilePathWithName, false);
+                _sw2 = new StreamWriter(AlertDetailsFileName, true);
+                
                 //// File Output Pattern ////
                 // Time,Crossing Up/Down,TradeType \n
                 // Prev Rows
                 await _sw1.WriteAsync(_alertTime + "," + messageWithImpInfo + "," + tradeType + Environment.NewLine + _prevData);
                 await _sw2.WriteLineAsync(_alertTime + " , " + message);
             }
+            // Exceptions
             catch (IOException ex)
             {
                 await _sw3!.WriteLineAsync(_alertTime + " , " + ex.Message);
@@ -106,7 +106,7 @@ namespace TradingExecutorAPI.Controllers
         [HttpGet("/getversion", Name = "GetVersion")]
         public string GetVersion()
         {
-            return "1.0";
+            return "1.3";
         }
     }
 }
