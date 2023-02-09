@@ -33,8 +33,7 @@ namespace TradingExecutorAPI.Controllers
                 using StreamReader sReader = new StreamReader(FilePathWithName);
                 _prevData = await sReader.ReadToEndAsync();
                 sReader.Dispose();
-
-
+                
                 // Read Request Body/Contents
                 HttpRequest req = Request;
                 string reqBody = alert.TimeAndMessage!;
@@ -43,11 +42,13 @@ namespace TradingExecutorAPI.Controllers
                 string messageWithImpInfo;
                 string tradeType = message.Split(",")[0];
                 
+                // Initiate writer for alert error, sw3 = AlertErrors.txt
+                _sw3 = new StreamWriter(AlertErrorsFileName, true);
+                
                 // Validate Token
                 var valid = new AlertService().ValidateReqHeader(req.Headers["CallerToken"], reqBody);
                 if (!valid.Item1)
                 {
-                    _sw3 = new StreamWriter(AlertErrorsFileName, true);
                     await _sw3.WriteLineAsync( _alertTime + " , " + $"Token Validation Error, token found {req.Headers["CallerToken"]}, {valid.Item2} ");
                     await _sw3!.DisposeAsync();
                     return "Token Validation Error";
