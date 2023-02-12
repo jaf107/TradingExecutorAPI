@@ -19,6 +19,10 @@ namespace TradingExecutorAPI.Controllers
         private StreamWriter? _sw1;
         private StreamWriter? _sw2;
         private StreamWriter? _sw3;
+
+        private StreamWriter? _custom_sw;
+        private string _prevCustomData = "";
+
         private string _alertTime = "";
 
         [HttpPost("/forwardalert", Name = "ForwardAlert")]
@@ -45,6 +49,20 @@ namespace TradingExecutorAPI.Controllers
                 string message = alert.TimeAndMessage?.Split("||")[1]!;
                 string messageWithImpInfo;
                 string tradeType = message.Split(",")[0];
+
+                string CustomAlertFile = FileDirectory+ "\\"+ tradeType + "_Alerts.txt";
+
+
+                try
+                {
+                    using StreamReader customStreamReader = new StreamReader(CustomAlertFile);
+                    _prevCustomData = await customStreamReader.ReadToEndAsync();
+                    customStreamReader.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    await _sw3!.WriteLineAsync(_alertTime + " , " + ex.Message);
+                }
 
                 // Validate Token
                 var valid = new AlertService().ValidateReqHeader(req.Headers["CallerToken"], reqBody);
@@ -79,12 +97,15 @@ namespace TradingExecutorAPI.Controllers
                 // sw1 = Alerts.txt, sw2 = AlertDetails.txt
                 _sw1 = new StreamWriter(FilePathWithName, false);
                 _sw2 = new StreamWriter(AlertDetailsFileName, true);
+                _custom_sw = new StreamWriter(CustomAlertFile, false);
                 
                 //// File Output Pattern ////
                 // Time,Crossing Up/Down,TradeType \n
                 // Prev Rows
                 await _sw1.WriteAsync(_alertTime + "," + messageWithImpInfo + "," + tradeType + Environment.NewLine + _prevData);
                 await _sw2.WriteLineAsync(_alertTime + " , " + message);
+                await _custom_sw.WriteAsync(_alertTime + "," + messageWithImpInfo + "," + tradeType + Environment.NewLine + _prevCustomData);
+                
             }
             // Exceptions
             catch (IOException ex)
@@ -100,6 +121,7 @@ namespace TradingExecutorAPI.Controllers
                 if(_sw1 != null) await _sw1!.DisposeAsync();
                 if(_sw2 != null) await _sw2!.DisposeAsync();
                 if(_sw3 != null) await _sw3!.DisposeAsync();
+                if (_custom_sw != null) await _custom_sw!.DisposeAsync();
             }
 
             return SuccessCode;
