@@ -12,16 +12,13 @@ namespace TradingExecutorAPI.Controllers
     {
         private const string SuccessCode = "200";
         private const string FileDirectory = "C:\\Alerts";
-        private const string FilePathWithName = FileDirectory + "\\Alerts.txt";
+        private const string FileNameSuffix = "_Alerts.txt";
         private const string AlertDetailsFileName = "AlertDetails.txt";
         private const string AlertErrorsFileName = "AlertErrors.txt";
         private string _prevData = "";
         private StreamWriter? _sw1;
         private StreamWriter? _sw2;
         private StreamWriter? _sw3;
-
-        private StreamWriter? _custom_sw;
-        private string _prevCustomData = "";
 
         private string _alertTime = "";
 
@@ -37,11 +34,6 @@ namespace TradingExecutorAPI.Controllers
                 // Create Directory if not exists 
                 FileUtils.CreateDirectory(FileDirectory);
             
-                // Read prev content from file before writing/doing anything
-                using StreamReader sReader = new StreamReader(FilePathWithName);
-                _prevData = await sReader.ReadToEndAsync();
-                sReader.Dispose();
-                
                 // Read Request Body/Contents
                 HttpRequest req = Request;
                 string reqBody = alert.TimeAndMessage!;
@@ -49,19 +41,14 @@ namespace TradingExecutorAPI.Controllers
                 string message = alert.TimeAndMessage?.Split("||")[1]!;
                 string messageWithImpInfo;
                 string tradeType = message.Split(",")[0];
-
-                string CustomAlertFile = FileDirectory+ "\\"+ tradeType + "_Alerts.txt";
-
-
-                try
+                
+                // Read prev content from file before writing/doing anything
+                string filePathWithName = FileDirectory+ "\\"+ tradeType + FileNameSuffix;
+                if (System.IO.File.Exists(filePathWithName))
                 {
-                    using StreamReader customStreamReader = new StreamReader(CustomAlertFile);
-                    _prevCustomData = await customStreamReader.ReadToEndAsync();
-                    customStreamReader.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    await _sw3!.WriteLineAsync(_alertTime + " , " + ex.Message);
+                    using StreamReader sReader = new StreamReader(filePathWithName);
+                    _prevData = await sReader.ReadToEndAsync();
+                    sReader.Dispose();
                 }
 
                 // Validate Token
@@ -91,21 +78,19 @@ namespace TradingExecutorAPI.Controllers
                 //System.IO.File.Delete(FilePathWithName);
                 
                 // Clear the existing file
-                await System.IO.File.WriteAllTextAsync(FilePathWithName, string.Empty);
+                /*if (System.IO.File.Exists(filePathWithName))
+                    await System.IO.File.WriteAllTextAsync(filePathWithName, string.Empty);*/
                 
                 // Initiate all writers for alert (except AlertErrors.txt),
                 // sw1 = Alerts.txt, sw2 = AlertDetails.txt
-                _sw1 = new StreamWriter(FilePathWithName, false);
+                _sw1 = new StreamWriter(filePathWithName, false);
                 _sw2 = new StreamWriter(AlertDetailsFileName, true);
-                _custom_sw = new StreamWriter(CustomAlertFile, false);
-                
+
                 //// File Output Pattern ////
                 // Time,Crossing Up/Down,TradeType \n
                 // Prev Rows
                 await _sw1.WriteAsync(_alertTime + "," + messageWithImpInfo + "," + tradeType + Environment.NewLine + _prevData);
                 await _sw2.WriteLineAsync(_alertTime + " , " + message);
-                await _custom_sw.WriteAsync(_alertTime + "," + messageWithImpInfo + "," + tradeType + Environment.NewLine + _prevCustomData);
-                
             }
             // Exceptions
             catch (IOException ex)
@@ -121,16 +106,14 @@ namespace TradingExecutorAPI.Controllers
                 if(_sw1 != null) await _sw1!.DisposeAsync();
                 if(_sw2 != null) await _sw2!.DisposeAsync();
                 if(_sw3 != null) await _sw3!.DisposeAsync();
-                if (_custom_sw != null) await _custom_sw!.DisposeAsync();
             }
-
             return SuccessCode;
         }
         
         [HttpGet("/getversion", Name = "GetVersion")]
         public string GetVersion()
         {
-            return "1.3";
+            return "1.4";
         }
     }
 }
